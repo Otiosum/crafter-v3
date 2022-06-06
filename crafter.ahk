@@ -6,7 +6,7 @@ SendMode, Input
 ; QOL Variables ========
 configFile := A_ScriptDir . "\crafter_config.ini"
 imgFile := A_ScriptDir . "\crafter_img.png"
-keysText = 
+keysText =
     (
         Hotkeys & Buttons:
         > Numpad 0 : Stop Crafting
@@ -18,8 +18,7 @@ keysText =
     )
 
 ; Exposed variables ========
-seq1CraftPosX := 0
-seq1CraftPosY := 0
+
 seq2ItemPosX := 0
 seq2ItemPosY := 0
 seq3InventSlotPosX := 0
@@ -33,20 +32,25 @@ seq6CreateItemPosY := 0
 seq7CraftedItemPosX := 0
 seq7CraftedItemPosY := 0
 
-isBeepStartEnabled := True
-isBeepEndEnabled := True
-isStartHotkeyEnabled := False
+; Sequence edit vars
+newSequenceName := ""
+maxSequenceName := 20
+editIsDropCraftEnabled := False
 
+; Sequence vars
 sequenceList := ""
 sequenceCount := 0
 selectedSequence := 0
 
-; Sequence edit vars
-newSequenceName := ""
-maxSequenceName := 20
-editGuiScale := 2
-editIsDropCraftEnabled := False
+seq1CraftPosX := 0
+seq1CraftPosY := 0
+seqIsDropCraft := False
 
+; Settings
+isBeepStartEnabled := True
+isBeepEndEnabled := True
+isStartHotkeyEnabled := False
+guiScale := 2
 
 ; Class variables ========
 tracker := new CursorTracker
@@ -63,6 +67,8 @@ Gui MainG: Add, Tab3, x5 y5 w240 h300, Execute||Modify|
 Gui MainG: Tab, 1
 Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5, %sequenceList%
+Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
+Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
 
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
 Gui MainG: Add, Button, x70 y+0 w50 h18 gDemoSequence, Test
@@ -81,8 +87,6 @@ Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection, %sequenceList%
 
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
-Gui MainG: Add, Text, x20 y+0, GUI scaling
-Gui MainG: Add, DropDownList, x+10 r5 w50, 1|2||3|4|
 Gui MainG: Add, Checkbox, x20 y+5 h16 gToggleDropCraft vEditIsDropCraftEnabledVar Checked%editIsDropCraftEnabled%, Drop crafted items
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
 
@@ -110,26 +114,32 @@ MainGGuiClose:
     Return
 
 ToggleBeepOnStart:
-    Gui, Submit, NoHide
-    isBeepStartEnabled := IsBeepStartEnabledVar
+    Gui MainG:Submit, NoHide
+    isBeepStartEnabled := isBeepStartEnabledVar
     WriteToConfig()
     return
 
 ToggleBeepOnStop:
-    Gui, Submit, NoHide
-    isBeepEndEnabled := IsBeepEndEnabledVar
+    Gui MainG:Submit, NoHide
+    isBeepEndEnabled := isBeepEndEnabledVar
     WriteToConfig()
     return
 
 ToggleStartHotkey:
-    Gui, Submit, NoHide
-    isStartHotkeyEnabled := IsStartHotkeyEnabledVar
+    Gui MainG:Submit, NoHide
+    isStartHotkeyEnabled := isStartHotkeyEnabledVar
+    WriteToConfig()
+    return
+
+SelectGuiScale:
+    Gui MainG:Submit, NoHide
+    guiScale := guiScaleVar
     WriteToConfig()
     return
 
 ToggleDropCraft:
     Gui MainG:Submit, NoHide
-    editIsDropCraftEnabled := EditIsDropCraftEnabledVar
+    editIsDropCraftEnabled := editIsDropCraftEnabledVar
     return
 
 UpdateSelection:
@@ -322,26 +332,20 @@ CreateConfigIfNoneExists() {
     global configFile
     if not (FileExist(configFile)) {
         FileAppend,
-        (
-            [Locations]
-            craftingTablePosX = 0
-            craftingTablePosY = 0
-            itemToCraftPosX = 0
-            itemToCraftPosY = 0
-            inventorySlotPosX = 0
-            inventorySlotPosY = 0
-            craftAssistSinglePosX = 0
-            craftAssistSinglePosY = 0
-            craftAssistMultiPosX = 0
-            craftAssistMultiPosY = 0
-            createItemPosX = 0
-            createItemPosY = 0
-            craftedItemPosX = 0
-            craftedItemPosY = 0
-            [Settings]
-            isBeepOnStartEnabled =1
-            isBeepOnEndEnabled =1
-            isStartHotkeyEnabled = 0
+        ( LTrim
+        [Recipe-SingleCraft]
+        craftingTablePosX =0
+        craftingTablePosY =0
+        isDropCraft =0
+        [Recipe-DoubleDropCraft]
+        craftingTablePosX =0
+        craftingTablePosY =0
+        isDropCraft =1
+        [Settings]
+        isBeepOnStartEnabled =1
+        isBeepOnEndEnabled =1
+        isStartHotkeyEnabled =0
+        guiScale =2
         ), % configFile, utf-16
     }
     return
@@ -349,58 +353,60 @@ CreateConfigIfNoneExists() {
 
 ReadFromConfig() {
     global
-    IniRead, seq1CraftPosX, % configFile, Locations, craftingTablePosX
-    IniRead, seq1CraftPosY, % configFile, Locations, craftingTablePosY
+    ; IniRead, seq1CraftPosX, % configFile, Locations, craftingTablePosX
+    ; IniRead, seq1CraftPosY, % configFile, Locations, craftingTablePosY
 
-    IniRead, seq2ItemPosX, % configFile, Locations, itemToCraftPosX
-    IniRead, seq2ItemPosY, % configFile, Locations, itemToCraftPosY
+    ; IniRead, seq2ItemPosX, % configFile, Locations, itemToCraftPosX
+    ; IniRead, seq2ItemPosY, % configFile, Locations, itemToCraftPosY
 
-    IniRead, seq3InventSlotPosX, % configFile, Locations, inventorySlotPosX
-    IniRead, seq3InventSlotPosY, % configFile, Locations, inventorySlotPosY
+    ; IniRead, seq3InventSlotPosX, % configFile, Locations, inventorySlotPosX
+    ; IniRead, seq3InventSlotPosY, % configFile, Locations, inventorySlotPosY
 
-    IniRead, seq4AssistSinglePosX, % configFile, Locations, craftAssistSinglePosX
-    IniRead, seq4AssistSinglePosY, % configFile, Locations, craftAssistSinglePosY
+    ; IniRead, seq4AssistSinglePosX, % configFile, Locations, craftAssistSinglePosX
+    ; IniRead, seq4AssistSinglePosY, % configFile, Locations, craftAssistSinglePosY
 
-    IniRead, seq5AssistMultiPosX, % configFile, Locations, craftAssistMultiPosX
-    IniRead, seq5AssistMultiPosY, % configFile, Locations, craftAssistMultiPosY
+    ; IniRead, seq5AssistMultiPosX, % configFile, Locations, craftAssistMultiPosX
+    ; IniRead, seq5AssistMultiPosY, % configFile, Locations, craftAssistMultiPosY
 
-    IniRead, seq6CreateItemPosX, % configFile, Locations, createItemPosX
-    IniRead, seq6CreateItemPosY, % configFile, Locations, createItemPosY
+    ; IniRead, seq6CreateItemPosX, % configFile, Locations, createItemPosX
+    ; IniRead, seq6CreateItemPosY, % configFile, Locations, createItemPosY
 
-    IniRead, seq7CraftedItemPosX, % configFile, Locations, craftedItemPosX
-    IniRead, seq7CraftedItemPosY, % configFile, Locations, craftedItemPosY
+    ; IniRead, seq7CraftedItemPosX, % configFile, Locations, craftedItemPosX
+    ; IniRead, seq7CraftedItemPosY, % configFile, Locations, craftedItemPosY
 
     IniRead, isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniRead, isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
     IniRead, isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
+    IniRead, guiScale, % configFile, Settings, guiScale
 }
 
 WriteToConfig() {
     global
-    IniWrite, % seq1CraftPosX, % configFile, Locations, craftingTablePosX
-    IniWrite, % seq1CraftPosY, % configFile, Locations, craftingTablePosY
+    ; IniWrite, % seq1CraftPosX, % configFile, Locations, craftingTablePosX
+    ; IniWrite, % seq1CraftPosY, % configFile, Locations, craftingTablePosY
 
-    IniWrite, % seq2ItemPosX, % configFile, Locations, itemToCraftPosX
-    IniWrite, % seq2ItemPosY, % configFile, Locations, itemToCraftPosY
+    ; IniWrite, % seq2ItemPosX, % configFile, Locations, itemToCraftPosX
+    ; IniWrite, % seq2ItemPosY, % configFile, Locations, itemToCraftPosY
 
-    IniWrite, % seq3InventSlotPosX, % configFile, Locations, inventorySlotPosX
-    IniWrite, % seq3InventSlotPosY, % configFile, Locations, inventorySlotPosY
+    ; IniWrite, % seq3InventSlotPosX, % configFile, Locations, inventorySlotPosX
+    ; IniWrite, % seq3InventSlotPosY, % configFile, Locations, inventorySlotPosY
 
-    IniWrite, % seq4AssistSinglePosX, % configFile, Locations, craftAssistSinglePosX
-    IniWrite, % seq4AssistSinglePosY, % configFile, Locations, craftAssistSinglePosY
+    ; IniWrite, % seq4AssistSinglePosX, % configFile, Locations, craftAssistSinglePosX
+    ; IniWrite, % seq4AssistSinglePosY, % configFile, Locations, craftAssistSinglePosY
 
-    IniWrite, % seq5AssistMultiPosX, % configFile, Locations, craftAssistMultiPosX
-    IniWrite, % seq5AssistMultiPosY, % configFile, Locations, craftAssistMultiPosY
+    ; IniWrite, % seq5AssistMultiPosX, % configFile, Locations, craftAssistMultiPosX
+    ; IniWrite, % seq5AssistMultiPosY, % configFile, Locations, craftAssistMultiPosY
 
-    IniWrite, % seq6CreateItemPosX, % configFile, Locations, createItemPosX
-    IniWrite, % seq6CreateItemPosY, % configFile, Locations, createItemPosY
+    ; IniWrite, % seq6CreateItemPosX, % configFile, Locations, createItemPosX
+    ; IniWrite, % seq6CreateItemPosY, % configFile, Locations, createItemPosY
 
-    IniWrite, % seq7CraftedItemPosX, % configFile, Locations, craftedItemPosX
-    IniWrite, % seq7CraftedItemPosY, % configFile, Locations, craftedItemPosY
+    ; IniWrite, % seq7CraftedItemPosX, % configFile, Locations, craftedItemPosX
+    ; IniWrite, % seq7CraftedItemPosY, % configFile, Locations, craftedItemPosY
 
     IniWrite, % isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniWrite, % isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
     IniWrite, % isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
+    IniWrite, % guiScale, % configFile, Settings, guiScale
 }
 
 SendMouseMove(x, y) {
@@ -532,7 +538,7 @@ class CraftSequenceRunner {
     }
     Tick() {
         global
-        
+
         ; Open left shulker ----
         ; For some stupid reason first move command never works upon start, hence the double calls elsewhere
         SendMouseMove(-200, 0)
@@ -573,7 +579,7 @@ class CraftSequenceRunner {
         MouseMove, seq4AssistSinglePosX, seq4AssistSinglePosY
         Sleep % this.actionDelay
         SendInput, {Shift down}
-        
+
         SendInput, {LButton}
         Sleep % this.actionDelay
         MouseMove, seq6CreateItemPosX, seq6CreateItemPosY
