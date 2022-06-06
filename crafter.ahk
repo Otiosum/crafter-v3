@@ -37,6 +37,8 @@ isBeepStartEnabled := True
 isBeepEndEnabled := True
 isStartHotkeyEnabled := False
 
+sequenceList := "|"
+
 ; Functional variables ========
 tracker := new CursorTracker
 sequenceRunner := new CraftSequenceRunner
@@ -46,56 +48,77 @@ CreateConfigIfNoneExists()
 ReadFromConfig()
 
 ; Create GUI elements ========
-Gui MainG: Font, s12
-Gui MainG: Add, Text, x40 y5, Mouse positions
-Gui MainG: Font, s8
+Gui MainG: Add, Tab3, x5 y5 w240 h300, Execute||Modify|
 
-Gui MainG: Add, Text, x5 w85 h16, Crafting table
-Gui MainG: Add, Text, x+0 w60 h16 vSeq1Var, % seq1CraftPosX ", " seq1CraftPosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+; Add elements to 1st tab
+Gui MainG: Tab, 1
+Gui MainG: Add, Text, x20 y+10, Select sequence
+Gui MainG: Add, DropDownList, x+10 r5, %sequenceList%
 
-Gui MainG: Add, Text, x5 w85 h16, Item to craft
-Gui MainG: Add, Text, x+0 w60 h16 vSeq2Var, % seq2ItemPosX ", " seq2ItemPosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-Gui MainG: Add, Text, x5 w85 h16, Free invent slot
-Gui MainG: Add, Text, x+0 w60 h16 vSeq3Var, % seq3InventSlotPosX ", " seq3InventSlotPosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-Gui MainG: Add, Text, x5 w85 h16, Single assist
-Gui MainG: Add, Text, x+0 w60 h16 vSeq4Var, % seq4AssistSinglePosX ", " seq4AssistSinglePosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-Gui MainG: Add, Text, x5 w85 h16, Multi assist
-Gui MainG: Add, Text, x+0 w60 h16 vSeq5Var, % seq5AssistMultiPosX ", " seq5AssistMultiPosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-Gui MainG: Add, Text, x5 w85 h16, Create item
-Gui MainG: Add, Text, x+0 w60 h16 vSeq6Var, % seq6CreateItemPosX ", " seq6CreateItemPosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-Gui MainG: Add, Text, x5 w85 h16, Crafted item
-Gui MainG: Add, Text, x+0 w60 h16 vSeq7Var, % seq7CraftedItemPosX ", " seq7CraftedItemPosY
-Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-Gui MainG: Add, Text, x5 y+10 w190 0x10 ; Horizontal Etched line
-
-Gui MainG: Add, Button, x45 y215 w50 h18 gDemoSequence, Test
+Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
+Gui MainG: Add, Button, x70 y+0 w50 h18 gDemoSequence, Test
 Gui MainG: Add, Button, x+10 w50 h18 gStartSequence vStartButton, Start
+Gui MainG: Add, Text, x5 y+10 w240 0x10 ; Horizontal Etched line
 
-Gui MainG: Add, Text, x5 y+5 w190 0x10 ; Horizontal Etched line
+Gui MainG: Add, Checkbox, x20 y+0 w150 h16 gToggleBeepOnStop vIsBeepEndEnabledVar Checked%isBeepEndEnabled%, Play BEEP when stopped
+Gui MainG: Add, Button, x+0 w40 h18 gPlayEndBeepDemo, Demo
+Gui MainG: Add, Checkbox, x20 y+2 w150 h16 gToggleBeepOnStart vIsBeepStartEnabledVar Checked%isBeepStartEnabled%, Play BEEPs when starting
+Gui MainG: Add, Button, x+0 w40 h18 gPlayStartBeepDemo, Demo
+Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
 
-Gui MainG: Add, Checkbox, x5 y+0 w150 h16 gToggleBeepOnStop vIsBeepEndEnabledVar Checked%isBeepEndEnabled%, Play BEEP when stopped
-Gui MainG: Add, Button, x+0 w40 h16 gPlayEndBeepDemo, Demo
-Gui MainG: Add, Checkbox, x5 w150 h16 gToggleBeepOnStart vIsBeepStartEnabledVar Checked%isBeepStartEnabled%, Play BEEPs when starting
-Gui MainG: Add, Button, x+0 w40 h16 gPlayStartBeepDemo, Demo
-Gui MainG: Add, Checkbox, x5 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
-Gui MainG: Add, Button, x19 w80 h18 gDisplayHotkeys, Hotkeys
+; Add elements to 2nd tab
+
+; Gui MainG: Font, s12
+; Gui MainG: Add, Text, x40 y5, Mouse positions
+; Gui MainG: Font, s8
+
+; Gui MainG: Add, Text, x5 w85 h16, Crafting table
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq1Var, % seq1CraftPosX ", " seq1CraftPosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 w85 h16, Item to craft
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq2Var, % seq2ItemPosX ", " seq2ItemPosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 w85 h16, Free invent slot
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq3Var, % seq3InventSlotPosX ", " seq3InventSlotPosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 w85 h16, Single assist
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq4Var, % seq4AssistSinglePosX ", " seq4AssistSinglePosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 w85 h16, Multi assist
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq5Var, % seq5AssistMultiPosX ", " seq5AssistMultiPosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 w85 h16, Create item
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq6Var, % seq6CreateItemPosX ", " seq6CreateItemPosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 w85 h16, Crafted item
+; Gui MainG: Add, Text, x+0 w60 h16 vSeq7Var, % seq7CraftedItemPosX ", " seq7CraftedItemPosY
+; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+
+; Gui MainG: Add, Text, x5 y+10 w190 0x10 ; Horizontal Etched line
+
+; Gui MainG: Add, Button, x45 y215 w50 h18 gDemoSequence, Test
+; Gui MainG: Add, Button, x+10 w50 h18 gStartSequence vStartButton, Start
+
+; Gui MainG: Add, Text, x5 y+5 w190 0x10 ; Horizontal Etched line
+
+; Gui MainG: Add, Checkbox, x5 y+0 w150 h16 gToggleBeepOnStop vIsBeepEndEnabledVar Checked%isBeepEndEnabled%, Play BEEP when stopped
+; Gui MainG: Add, Button, x+0 w40 h16 gPlayEndBeepDemo, Demo
+; Gui MainG: Add, Checkbox, x5 w150 h16 gToggleBeepOnStart vIsBeepStartEnabledVar Checked%isBeepStartEnabled%, Play BEEPs when starting
+; Gui MainG: Add, Button, x+0 w40 h16 gPlayStartBeepDemo, Demo
+; Gui MainG: Add, Checkbox, x5 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
+Gui MainG: Tab,
+Gui MainG: Add, Button, x5 w80 h18 gDisplayHotkeys, Hotkeys
 Gui MainG: Add, Button, x+2 w80 h18 gDisplayHelp, Help
 
 
 Gui MainG: +AlwaysOnTop
-Gui MainG: Show, w200 h350 x1700 y680, Crafter
+Gui MainG: Show, w250 h350 x1650 y650, Crafter
 Return
 
 ; Labels ========
