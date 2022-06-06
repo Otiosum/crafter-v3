@@ -43,6 +43,7 @@ selectedSequence := 0
 
 ; Sequence edit vars
 newSequenceName := ""
+maxSequenceName := 20
 editGuiScale := 2
 editIsDropCraftEnabled := False
 
@@ -138,9 +139,9 @@ UpdateSelection:
 CreateNewSequence:
     InputBox, newSequenceName, Sequence name, Enter new sequence name,,200,130, 1400, 650
     if not ErrorLevel
-        if StrLen(newSequenceName) > 0 and StrLen(newSequenceName) <= 20 {
+        if StrLen(newSequenceName) > 0 and StrLen(newSequenceName) <= maxSequenceName {
             if (IsItemInList(sequenceList, newSequenceName)) {
-                MsgBox, A sequence with this name already exists
+                MsgBox, A sequence with this name already exists.
             }
             Else {
                 (StrLen(sequenceList) = 1) ? (sequenceList .= newSequenceName) : (sequenceList .= "|" newSequenceName)
@@ -151,14 +152,14 @@ CreateNewSequence:
             }
         }
         Else {
-            MsgBox, Name must be at least 1 character, and no more than 20
+            len := StrLen(newSequenceName)
+            MsgBox, Name must be at least 1 character, and no more than %maxSequenceName%. You entered %len% characters.
         }
-    newSequenceName := ""
     return
 
 RemoveSequence:
     item := GetItemFromList(sequenceList, selectedSequence)
-    MsgBox, 4,, Permanently delete %item% ?
+    MsgBox, 4,, Permanently delete "%item%" ?
     IfMsgBox, Yes
     {
         sequenceList := DeleteItemFromList(sequenceList, selectedSequence)
