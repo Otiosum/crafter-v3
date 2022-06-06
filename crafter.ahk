@@ -37,9 +37,17 @@ isBeepStartEnabled := True
 isBeepEndEnabled := True
 isStartHotkeyEnabled := False
 
-sequenceList := "|"
+sequenceList := ""
+sequenceCount := 0
+selectedSequence := 0
 
-; Functional variables ========
+; Sequence edit vars
+newSequenceName := ""
+editGuiScale := 2
+editIsDropCraftEnabled := False
+
+
+; Class variables ========
 tracker := new CursorTracker
 sequenceRunner := new CraftSequenceRunner
 
@@ -67,51 +75,25 @@ Gui MainG: Add, Button, x+0 w40 h18 gPlayStartBeepDemo, Demo
 Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
 
 ; Add elements to 2nd tab
+Gui MainG: Tab, 2
+Gui MainG: Add, Text, x20 y+10, Select sequence
+Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection, %sequenceList%
 
-; Gui MainG: Font, s12
-; Gui MainG: Add, Text, x40 y5, Mouse positions
-; Gui MainG: Font, s8
+Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
+Gui MainG: Add, Text, x20 y+0, GUI scaling
+Gui MainG: Add, DropDownList, x+10 r5 w50, 1|2||3|4|
+Gui MainG: Add, Checkbox, x20 y+5 h16 gToggleDropCraft vEditIsDropCraftEnabledVar Checked%editIsDropCraftEnabled%, Drop crafted items
+Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
 
-; Gui MainG: Add, Text, x5 w85 h16, Crafting table
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq1Var, % seq1CraftPosX ", " seq1CraftPosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+Gui MainG: Add, Text, x20 y+0 w85 h18, Crafting table
+Gui MainG: Add, Text, x+0 w60 h18 vSeq1Var, % seq1CraftPosX ", " seq1CraftPosY
+Gui MainG: Add, Button, x+5 w40 h14 gSetButton, Set
 
-; Gui MainG: Add, Text, x5 w85 h16, Item to craft
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq2Var, % seq2ItemPosX ", " seq2ItemPosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
+Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
+Gui MainG: Add, Button, x69 y+0 w50 h18 gCreateNewSequence, New
+Gui MainG: Add, Button, x+5 w50 h18 gRemoveSequence, Delete
 
-; Gui MainG: Add, Text, x5 w85 h16, Free invent slot
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq3Var, % seq3InventSlotPosX ", " seq3InventSlotPosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-; Gui MainG: Add, Text, x5 w85 h16, Single assist
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq4Var, % seq4AssistSinglePosX ", " seq4AssistSinglePosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-; Gui MainG: Add, Text, x5 w85 h16, Multi assist
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq5Var, % seq5AssistMultiPosX ", " seq5AssistMultiPosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-; Gui MainG: Add, Text, x5 w85 h16, Create item
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq6Var, % seq6CreateItemPosX ", " seq6CreateItemPosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-; Gui MainG: Add, Text, x5 w85 h16, Crafted item
-; Gui MainG: Add, Text, x+0 w60 h16 vSeq7Var, % seq7CraftedItemPosX ", " seq7CraftedItemPosY
-; Gui MainG: Add, Button, x+5 w40 h16 gSetButton, Set
-
-; Gui MainG: Add, Text, x5 y+10 w190 0x10 ; Horizontal Etched line
-
-; Gui MainG: Add, Button, x45 y215 w50 h18 gDemoSequence, Test
-; Gui MainG: Add, Button, x+10 w50 h18 gStartSequence vStartButton, Start
-
-; Gui MainG: Add, Text, x5 y+5 w190 0x10 ; Horizontal Etched line
-
-; Gui MainG: Add, Checkbox, x5 y+0 w150 h16 gToggleBeepOnStop vIsBeepEndEnabledVar Checked%isBeepEndEnabled%, Play BEEP when stopped
-; Gui MainG: Add, Button, x+0 w40 h16 gPlayEndBeepDemo, Demo
-; Gui MainG: Add, Checkbox, x5 w150 h16 gToggleBeepOnStart vIsBeepStartEnabledVar Checked%isBeepStartEnabled%, Play BEEPs when starting
-; Gui MainG: Add, Button, x+0 w40 h16 gPlayStartBeepDemo, Demo
-; Gui MainG: Add, Checkbox, x5 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
+; Outside tab
 Gui MainG: Tab,
 Gui MainG: Add, Button, x5 w80 h18 gDisplayHotkeys, Hotkeys
 Gui MainG: Add, Button, x+2 w80 h18 gDisplayHelp, Help
@@ -144,6 +126,53 @@ ToggleStartHotkey:
     WriteToConfig()
     return
 
+ToggleDropCraft:
+    Gui MainG:Submit, NoHide
+    editIsDropCraftEnabled := EditIsDropCraftEnabledVar
+    return
+
+UpdateSelection:
+    Gui MainG:Submit, NoHide
+    return
+
+CreateNewSequence:
+    InputBox, newSequenceName, Sequence name, Enter new sequence name,,200,130, 1400, 650
+    if not ErrorLevel
+        if StrLen(newSequenceName) > 0 and StrLen(newSequenceName) <= 20 {
+            if (IsItemInList(sequenceList, newSequenceName)) {
+                MsgBox, A sequence with this name already exists
+            }
+            Else {
+                (StrLen(sequenceList) = 1) ? (sequenceList .= newSequenceName) : (sequenceList .= "|" newSequenceName)
+                sequenceCount += 1
+                GuiControl, MainG: ,ComboBox2, %sequenceList%
+                GuiControl, MainG:Choose, Combobox2, %sequenceCount%
+                Gui MainG:Submit, NoHide
+            }
+        }
+        Else {
+            MsgBox, Name must be at least 1 character, and no more than 20
+        }
+    newSequenceName := ""
+    return
+
+RemoveSequence:
+    item := GetItemFromList(sequenceList, selectedSequence)
+    MsgBox, 4,, Permanently delete %item% ?
+    IfMsgBox, Yes
+    {
+        sequenceList := DeleteItemFromList(sequenceList, selectedSequence)
+        sequenceCount -= 1
+
+        if (StrLen(sequenceList) = 0)
+            sequenceList := "|"
+
+        GuiControl, MainG: ,ComboBox2, %sequenceList%
+        GuiControl, MainG:Choose, ComboBox2, 1
+        Gui MainG:Submit, NoHide
+    }
+    return
+
 PlayEndBeepDemo:
     SoundBeep, 888, 128
     return
@@ -169,7 +198,7 @@ SetButton:
         WinActivate, Minecraft
 
         Switch buttonControlClass {
-            case "Button1":
+            case "Button9":
                 GuiControlGet, output, Name, Seq1Var
                 tracker.Start(output, buttonControlClass, "seq1CraftPosX", "seq1CraftPosY")
             case "Button2":
@@ -389,6 +418,28 @@ PlayBeepStartSequence(delay) {
     SoundBeep, 111, 128
 }
 
+GetItemFromList(listName, index) {
+    Loop, parse, listName, |
+    {
+        if (index + 1 = A_Index)
+            return A_LoopField
+    }
+}
+
+DeleteItemFromList(listName, index) {
+    item := "|" GetItemFromList(listName, index)
+    return StrReplace(listName, item, "")
+}
+
+IsItemInList(listName, itemName) {
+    Loop, parse, listName, |
+    {
+        if (itemName = A_LoopField)
+            return True
+    }
+    return False
+}
+
 ; Classes ========
 class CursorTracker {
     __New() {
@@ -414,7 +465,7 @@ class CursorTracker {
             timer := this.timer
             SetTimer % timer, Off
             GuiControl, MainG:Enable, % this.activeSetButton
-            
+
             Sleep 50
             WriteToConfig()
         }
