@@ -133,6 +133,10 @@ SelectGuiScale:
 UpdateSelection:
     Gui MainG:Submit, NoHide
     WriteToConfig()
+    ReadSelectedSequenceDataFromConfig()
+
+    GuiControlGet, output, Name, Seq1Var
+    GuiControl, MainG:, % output, % seqCraftPosX ", " seqCraftPosY
     return
 
 PlayEndBeepDemo:
@@ -321,6 +325,8 @@ ReadFromConfig() {
     IniRead, isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
     IniRead, guiScale, % configFile, Settings, guiScale
     IniRead, selectedSequence, % configFile, Settings, LastUsedSequenceId
+
+    ReadSelectedSequenceDataFromConfig()
 }
 
 ReadSelectedSequenceDataFromConfig() {
