@@ -160,27 +160,27 @@ SetButton:
         WinActivate, Minecraft
 
         Switch buttonControlClass {
-            case "Button9":
+            case "Button8":
                 GuiControlGet, output, Name, Seq1Var
                 tracker.Start(output, buttonControlClass, "seqCraftPosX", "seqCraftPosY")
-            case "Button2":
-                GuiControlGet, output, Name, Seq2Var
-                tracker.Start(output, buttonControlClass, "seq2ItemPosX", "seq2ItemPosY")
-            case "Button3":
-                GuiControlGet, output, Name, Seq3Var
-                tracker.Start(output, buttonControlClass, "seq3InventSlotPosX", "seq3InventSlotPosY")
-            case "Button4":
-                GuiControlGet, output, Name, Seq4Var
-                tracker.Start(output, buttonControlClass, "seq4AssistSinglePosX", "seq4AssistSinglePosY")
-            case "Button5":
-                GuiControlGet, output, Name, Seq5Var
-                tracker.Start(output, buttonControlClass, "seq5AssistMultiPosX", "seq5AssistMultiPosY")
-            case "Button6":
-                GuiControlGet, output, Name, Seq6Var
-                tracker.Start(output, buttonControlClass, "seq6CreateItemPosX", "seq6CreateItemPosY")
-            case "Button7":
-                GuiControlGet, output, Name, Seq7Var
-                tracker.Start(output, buttonControlClass, "seq7CraftedItemPosX", "seq7CraftedItemPosY")
+            ; case "Button2":
+            ;     GuiControlGet, output, Name, Seq2Var
+            ;     tracker.Start(output, buttonControlClass, "seq2ItemPosX", "seq2ItemPosY")
+            ; case "Button3":
+            ;     GuiControlGet, output, Name, Seq3Var
+            ;     tracker.Start(output, buttonControlClass, "seq3InventSlotPosX", "seq3InventSlotPosY")
+            ; case "Button4":
+            ;     GuiControlGet, output, Name, Seq4Var
+            ;     tracker.Start(output, buttonControlClass, "seq4AssistSinglePosX", "seq4AssistSinglePosY")
+            ; case "Button5":
+            ;     GuiControlGet, output, Name, Seq5Var
+            ;     tracker.Start(output, buttonControlClass, "seq5AssistMultiPosX", "seq5AssistMultiPosY")
+            ; case "Button6":
+            ;     GuiControlGet, output, Name, Seq6Var
+            ;     tracker.Start(output, buttonControlClass, "seq6CreateItemPosX", "seq6CreateItemPosY")
+            ; case "Button7":
+            ;     GuiControlGet, output, Name, Seq7Var
+            ;     tracker.Start(output, buttonControlClass, "seq7CraftedItemPosX", "seq7CraftedItemPosY")
         }
     }
     Else {
@@ -323,6 +323,14 @@ ReadFromConfig() {
     IniRead, selectedSequence, % configFile, Settings, LastUsedSequenceId
 }
 
+ReadSelectedSequenceDataFromConfig() {
+    global
+
+    IniRead, seqCraftPosX, % configFile, % selectedSequence, craftingTablePosX
+    IniRead, seqCraftPosY, % configFile, % selectedSequence, craftingTablePosY
+    IniRead, seqIsDropCraft, % configFile, % selectedSequence, isDropCraft
+}
+
 WriteToConfig() {
     global
 
@@ -331,6 +339,14 @@ WriteToConfig() {
     IniWrite, % isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
     IniWrite, % guiScale, % configFile, Settings, guiScale
     IniWrite, % selectedSequence, % configFile, Settings, LastUsedSequenceId
+}
+
+WriteSelectedSequenceDataToConfig() {
+    global
+
+    IniWrite, % seqCraftPosX, % configFile, % selectedSequence, craftingTablePosX
+    IniWrite, % seqCraftPosY, % configFile, % selectedSequence, craftingTablePosY
+    IniWrite, % seqIsDropCraft, % configFile, % selectedSequence, isDropCraft
 }
 
 SendMouseMove(x, y) {
@@ -376,7 +392,7 @@ class CursorTracker {
             GuiControl, MainG:Enable, % this.activeSetButton
 
             Sleep 50
-            WriteToConfig()
+            WriteSelectedSequenceDataToConfig()
         }
     }
     Tick() {
