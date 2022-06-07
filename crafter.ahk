@@ -9,7 +9,7 @@ imgFile := A_ScriptDir . "\crafter_img.png"
 keysText =
     (
         Hotkeys & Buttons:
-        > Numpad 0 : Stop Crafting
+        > Numpad End : Stop Crafting
         > RCtrl : Start Crafting (If toggled)
         > Alt Gr : Exit program
         > Left Click : Confirm mouse position after selecting "Set"
@@ -65,8 +65,6 @@ Gui MainG: Add, Tab3, x5 y5 w240 h300, Execute||Modify|
 Gui MainG: Tab, 1
 Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection Choose%selectedSequence%, %sequenceList%
-; GuiControl, MainG: ,ComboBox1, %sequenceList%
-; GuiControl, MainG:Choose, ComboBox1, %selectedSequence%
 
 Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
 Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
@@ -351,28 +349,6 @@ PlayBeepStartSequence(delay) {
     SoundBeep, 111, 128
 }
 
-GetItemFromList(listName, index) {
-    Loop, parse, listName, |
-    {
-        if (index + 1 = A_Index)
-            return A_LoopField
-    }
-}
-
-DeleteItemFromList(listName, index) {
-    item := "|" GetItemFromList(listName, index)
-    return StrReplace(listName, item, "")
-}
-
-IsItemInList(listName, itemName) {
-    Loop, parse, listName, |
-    {
-        if (itemName = A_LoopField)
-            return True
-    }
-    return False
-}
-
 ; Classes ========
 class CursorTracker {
     __New() {
@@ -577,7 +553,8 @@ class CraftSequenceRunner {
     }
     return
 
-NumPad0::
+;NumPad0::
+NumpadEnd::
     if (sequenceRunner.isCraftSequenceRunning) {
         if (isBeepEndEnabled)
             SoundBeep, 888, 128
