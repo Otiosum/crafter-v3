@@ -569,14 +569,14 @@ class CraftSequenceRunner {
 }
 
 ; Hotkeys ========
-~LButton::
+~RButton::
     if (tracker.isCursorTracking) {
         tracker.Stop()
     }
     return
 
-;NumPad0::
-NumpadEnd::
+; NumpadEnd
+vk23::
     if (sequenceRunner.isCraftSequenceRunning) {
         if (isBeepEndEnabled)
             SoundBeep, 888, 128
@@ -590,5 +590,5 @@ RControl::
         Gosub, StartSequence
     }
     return
-
+#if
 LControl & RAlt::ExitApp
