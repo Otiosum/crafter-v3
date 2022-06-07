@@ -12,7 +12,7 @@ keysText =
         > Numpad End : Stop Crafting
         > RCtrl : Start Crafting (If toggled)
         > Alt Gr : Exit program
-        > Left Click : Confirm mouse position after selecting "Set"
+        > Right Click : Confirm mouse position after selecting "Set"
         > Test Button : Run a slow sequence demo without left clicks
         > Start Button : Starts the crafting sequence
     )
