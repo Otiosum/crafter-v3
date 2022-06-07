@@ -32,9 +32,12 @@ seq6CreateItemPosY := 0
 seq7CraftedItemPosX := 0
 seq7CraftedItemPosY := 0
 
+; Edit sequence vars
+selectedEditSequence := 0
+
 ; Sequence vars
 sequenceList := ""
-sequenceCount := 0
+sequenceCount := 2
 selectedSequence := 0
 
 seqCraftPosX := 0
@@ -61,7 +64,10 @@ Gui MainG: Add, Tab3, x5 y5 w240 h300, Execute||Modify|
 ; Add elements to 1st tab
 Gui MainG: Tab, 1
 Gui MainG: Add, Text, x20 y+10, Select sequence
-Gui MainG: Add, DropDownList, x+10 r5, %sequenceList%
+Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection Choose%selectedSequence%, %sequenceList%
+; GuiControl, MainG: ,ComboBox1, %sequenceList%
+; GuiControl, MainG:Choose, ComboBox1, %selectedSequence%
+
 Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
 Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
 
@@ -79,7 +85,7 @@ Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVa
 ; Add elements to 2nd tab
 Gui MainG: Tab, 2
 Gui MainG: Add, Text, x20 y+10, Select sequence
-Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection, %sequenceList%
+Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedEditSequence gUpdateSelection, %sequenceList%
 
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
 Gui MainG: Add, Text, x20 y+0 w85 h18, Crafting table
@@ -128,6 +134,7 @@ SelectGuiScale:
 
 UpdateSelection:
     Gui MainG:Submit, NoHide
+    WriteToConfig()
     return
 
 PlayEndBeepDemo:
@@ -303,10 +310,19 @@ CreateConfigIfNoneExists() {
 ReadFromConfig() {
     global
 
+    ; Load sequence names
+    tempSeqName := ""
+    Loop %sequenceCount% {
+        IniRead, tempSeqName, % configFile, % A_Index, sequenceName
+        sequenceList .= tempSeqName "|"
+    }
+
+    ; Load settings
     IniRead, isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniRead, isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
     IniRead, isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
     IniRead, guiScale, % configFile, Settings, guiScale
+    IniRead, selectedSequence, % configFile, Settings, LastUsedSequenceId
 }
 
 WriteToConfig() {
@@ -316,6 +332,7 @@ WriteToConfig() {
     IniWrite, % isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
     IniWrite, % isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
     IniWrite, % guiScale, % configFile, Settings, guiScale
+    IniWrite, % selectedSequence, % configFile, Settings, LastUsedSequenceId
 }
 
 SendMouseMove(x, y) {
