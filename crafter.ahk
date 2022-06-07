@@ -32,11 +32,6 @@ seq6CreateItemPosY := 0
 seq7CraftedItemPosX := 0
 seq7CraftedItemPosY := 0
 
-; Sequence edit vars
-newSequenceName := ""
-maxSequenceName := 20
-editIsDropCraftEnabled := False
-
 ; Sequence vars
 sequenceList := ""
 sequenceCount := 0
@@ -87,16 +82,10 @@ Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection, %sequenceList%
 
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
-Gui MainG: Add, Checkbox, x20 y+5 h16 gToggleDropCraft vEditIsDropCraftEnabledVar Checked%editIsDropCraftEnabled%, Drop crafted items
-Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
-
 Gui MainG: Add, Text, x20 y+0 w85 h18, Crafting table
 Gui MainG: Add, Text, x+0 w60 h18 vSeq1Var, % seqCraftPosX ", " seqCraftPosY
 Gui MainG: Add, Button, x+5 w40 h14 gSetButton, Set
-
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
-Gui MainG: Add, Button, x69 y+0 w50 h18 gCreateNewSequence, New
-Gui MainG: Add, Button, x+5 w50 h18 gRemoveSequence, Delete
 
 ; Outside tab
 Gui MainG: Tab,
@@ -137,51 +126,8 @@ SelectGuiScale:
     WriteToConfig()
     return
 
-ToggleDropCraft:
-    Gui MainG:Submit, NoHide
-    editIsDropCraftEnabled := editIsDropCraftEnabledVar
-    return
-
 UpdateSelection:
     Gui MainG:Submit, NoHide
-    return
-
-CreateNewSequence:
-    InputBox, newSequenceName, Sequence name, Enter new sequence name,,200,130, 1400, 650
-    if not ErrorLevel
-        if StrLen(newSequenceName) > 0 and StrLen(newSequenceName) <= maxSequenceName {
-            if (IsItemInList(sequenceList, newSequenceName)) {
-                MsgBox, A sequence with this name already exists.
-            }
-            Else {
-                (StrLen(sequenceList) = 1) ? (sequenceList .= newSequenceName) : (sequenceList .= "|" newSequenceName)
-                sequenceCount += 1
-                GuiControl, MainG: ,ComboBox2, %sequenceList%
-                GuiControl, MainG:Choose, Combobox2, %sequenceCount%
-                Gui MainG:Submit, NoHide
-            }
-        }
-        Else {
-            len := StrLen(newSequenceName)
-            MsgBox, Name must be at least 1 character, and no more than %maxSequenceName%. You entered %len% characters.
-        }
-    return
-
-RemoveSequence:
-    item := GetItemFromList(sequenceList, selectedSequence)
-    MsgBox, 4,, Permanently delete "%item%" ?
-    IfMsgBox, Yes
-    {
-        sequenceList := DeleteItemFromList(sequenceList, selectedSequence)
-        sequenceCount -= 1
-
-        if (StrLen(sequenceList) = 0)
-            sequenceList := "|"
-
-        GuiControl, MainG: ,ComboBox2, %sequenceList%
-        GuiControl, MainG:Choose, ComboBox2, 1
-        Gui MainG:Submit, NoHide
-    }
     return
 
 PlayEndBeepDemo:
@@ -333,11 +279,13 @@ CreateConfigIfNoneExists() {
     if not (FileExist(configFile)) {
         FileAppend,
         ( LTrim
-        [Sequence-SingleCraft]
+        [1]
+        sequenceName =Single craft
         craftingTablePosX =0
         craftingTablePosY =0
         isDropCraft =0
-        [Sequence-DoubleDropCraft]
+        [2]
+        sequenceName = Double drop craft
         craftingTablePosX =0
         craftingTablePosY =0
         isDropCraft =1
@@ -346,6 +294,7 @@ CreateConfigIfNoneExists() {
         isBeepOnEndEnabled =1
         isStartHotkeyEnabled =0
         guiScale =2
+        LastUsedSequenceId =1
         ), % configFile, utf-16
     }
     return
@@ -353,20 +302,6 @@ CreateConfigIfNoneExists() {
 
 ReadFromConfig() {
     global
-    ; Find sequence sections
-    sections := ""
-    Loop, Read, configFile
-    {
-        if (InStr(A_LoopReadLine, "[Sequence"))  {
-            trimmedSection := StrReplace(A_LoopField, "[", "")
-            trimmedSection := StrReplace(trimmedSection, "]", "")
-            IniRead, seqCraftPosX, % configFile, % trimmedSection, craftingTablePosX
-            IniRead, seqCraftPosY, % configFile, % trimmedSection, craftingTablePosY
-        }
-        Else if (InStr(A_LoopReadLine, "[Settings")) {
-            Break
-        }
-    }
 
     IniRead, isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniRead, isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
