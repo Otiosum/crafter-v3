@@ -42,8 +42,8 @@ sequenceList := ""
 sequenceCount := 0
 selectedSequence := 0
 
-seq1CraftPosX := 0
-seq1CraftPosY := 0
+seqCraftPosX := 0
+seqCraftPosY := 0
 seqIsDropCraft := False
 
 ; Settings
@@ -91,7 +91,7 @@ Gui MainG: Add, Checkbox, x20 y+5 h16 gToggleDropCraft vEditIsDropCraftEnabledVa
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
 
 Gui MainG: Add, Text, x20 y+0 w85 h18, Crafting table
-Gui MainG: Add, Text, x+0 w60 h18 vSeq1Var, % seq1CraftPosX ", " seq1CraftPosY
+Gui MainG: Add, Text, x+0 w60 h18 vSeq1Var, % seqCraftPosX ", " seqCraftPosY
 Gui MainG: Add, Button, x+5 w40 h14 gSetButton, Set
 
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
@@ -211,7 +211,7 @@ SetButton:
         Switch buttonControlClass {
             case "Button9":
                 GuiControlGet, output, Name, Seq1Var
-                tracker.Start(output, buttonControlClass, "seq1CraftPosX", "seq1CraftPosY")
+                tracker.Start(output, buttonControlClass, "seqCraftPosX", "seqCraftPosY")
             case "Button2":
                 GuiControlGet, output, Name, Seq2Var
                 tracker.Start(output, buttonControlClass, "seq2ItemPosX", "seq2ItemPosY")
@@ -243,7 +243,7 @@ StartSequence:
         sequenceRunner.Start(output)
 
         WinActivate, Minecraft
-        MouseMove, seq1CraftPosX, seq1CraftPosY
+        MouseMove, seqCraftPosX, seqCraftPosY
         if (isBeepStartEnabled)
             PlayBeepStartSequence(sequenceRunner.actionDelay)
         SendInput, {Esc}
@@ -258,7 +258,7 @@ DemoSequence:
         speed := 300
 
         WinActivate, Minecraft
-        MouseMove, seq1CraftPosX, seq1CraftPosY
+        MouseMove, seqCraftPosX, seqCraftPosY
         SendInput, {Esc}
         Sleep 500
 
@@ -333,11 +333,11 @@ CreateConfigIfNoneExists() {
     if not (FileExist(configFile)) {
         FileAppend,
         ( LTrim
-        [Recipe-SingleCraft]
+        [Sequence-SingleCraft]
         craftingTablePosX =0
         craftingTablePosY =0
         isDropCraft =0
-        [Recipe-DoubleDropCraft]
+        [Sequence-DoubleDropCraft]
         craftingTablePosX =0
         craftingTablePosY =0
         isDropCraft =1
@@ -353,26 +353,20 @@ CreateConfigIfNoneExists() {
 
 ReadFromConfig() {
     global
-    ; IniRead, seq1CraftPosX, % configFile, Locations, craftingTablePosX
-    ; IniRead, seq1CraftPosY, % configFile, Locations, craftingTablePosY
-
-    ; IniRead, seq2ItemPosX, % configFile, Locations, itemToCraftPosX
-    ; IniRead, seq2ItemPosY, % configFile, Locations, itemToCraftPosY
-
-    ; IniRead, seq3InventSlotPosX, % configFile, Locations, inventorySlotPosX
-    ; IniRead, seq3InventSlotPosY, % configFile, Locations, inventorySlotPosY
-
-    ; IniRead, seq4AssistSinglePosX, % configFile, Locations, craftAssistSinglePosX
-    ; IniRead, seq4AssistSinglePosY, % configFile, Locations, craftAssistSinglePosY
-
-    ; IniRead, seq5AssistMultiPosX, % configFile, Locations, craftAssistMultiPosX
-    ; IniRead, seq5AssistMultiPosY, % configFile, Locations, craftAssistMultiPosY
-
-    ; IniRead, seq6CreateItemPosX, % configFile, Locations, createItemPosX
-    ; IniRead, seq6CreateItemPosY, % configFile, Locations, createItemPosY
-
-    ; IniRead, seq7CraftedItemPosX, % configFile, Locations, craftedItemPosX
-    ; IniRead, seq7CraftedItemPosY, % configFile, Locations, craftedItemPosY
+    ; Find sequence sections
+    sections := ""
+    Loop, Read, configFile
+    {
+        if (InStr(A_LoopReadLine, "[Sequence"))  {
+            trimmedSection := StrReplace(A_LoopField, "[", "")
+            trimmedSection := StrReplace(trimmedSection, "]", "")
+            IniRead, seqCraftPosX, % configFile, % trimmedSection, craftingTablePosX
+            IniRead, seqCraftPosY, % configFile, % trimmedSection, craftingTablePosY
+        }
+        Else if (InStr(A_LoopReadLine, "[Settings")) {
+            Break
+        }
+    }
 
     IniRead, isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniRead, isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
@@ -382,26 +376,6 @@ ReadFromConfig() {
 
 WriteToConfig() {
     global
-    ; IniWrite, % seq1CraftPosX, % configFile, Locations, craftingTablePosX
-    ; IniWrite, % seq1CraftPosY, % configFile, Locations, craftingTablePosY
-
-    ; IniWrite, % seq2ItemPosX, % configFile, Locations, itemToCraftPosX
-    ; IniWrite, % seq2ItemPosY, % configFile, Locations, itemToCraftPosY
-
-    ; IniWrite, % seq3InventSlotPosX, % configFile, Locations, inventorySlotPosX
-    ; IniWrite, % seq3InventSlotPosY, % configFile, Locations, inventorySlotPosY
-
-    ; IniWrite, % seq4AssistSinglePosX, % configFile, Locations, craftAssistSinglePosX
-    ; IniWrite, % seq4AssistSinglePosY, % configFile, Locations, craftAssistSinglePosY
-
-    ; IniWrite, % seq5AssistMultiPosX, % configFile, Locations, craftAssistMultiPosX
-    ; IniWrite, % seq5AssistMultiPosY, % configFile, Locations, craftAssistMultiPosY
-
-    ; IniWrite, % seq6CreateItemPosX, % configFile, Locations, createItemPosX
-    ; IniWrite, % seq6CreateItemPosY, % configFile, Locations, createItemPosY
-
-    ; IniWrite, % seq7CraftedItemPosX, % configFile, Locations, craftedItemPosX
-    ; IniWrite, % seq7CraftedItemPosY, % configFile, Locations, craftedItemPosY
 
     IniWrite, % isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniWrite, % isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
