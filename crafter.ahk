@@ -533,8 +533,7 @@ class CraftSequenceRunner {
         Sleep % this.actionDelay
 
         ; Open crafting table ====
-        if (isServerModeEnabled)
-            Sleep % this.actionDelay
+        Sleep % this.actionDelay
         SendMouseMove(200, 0)
         SendMouseMove(200, 0)
         SendInput, {RButton}
@@ -552,8 +551,7 @@ class CraftSequenceRunner {
         this.CraftItemStack(x, y)
         this.CraftItemStack(x, y)
         this.CraftItemStack(x, y)
-        if (isServerModeEnabled)
-            Sleep % this.actionDelay
+        Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
@@ -562,8 +560,7 @@ class CraftSequenceRunner {
         SendMouseMove(200, 0)
         SendInput, {RButton}
         Sleep % this.actionDelay
-        if (isServerModeEnabled)
-            Sleep % this.actionDelay
+        Sleep % this.actionDelay
 
         ; Deposit all items ====
         MouseMove, baseSelectRightItemX * guiScale, 0,, R
@@ -575,8 +572,7 @@ class CraftSequenceRunner {
         MouseMove, 0, baseMoveToItemY * guiScale,, R
         SendInput, {LButton}
         SendInput, {Shift up}
-        if (isServerModeEnabled)
-            Sleep % this.actionDelay
+        Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
