@@ -17,6 +17,11 @@ keysText =
         > Start Button : Starts the crafting sequence
     )
 
+; TODO: Do not need craft pos tracker anymore, since cursor is always centre
+; TODO: Add drop down for recipe category selection, and functionality during crafting
+; TODO: Potential server mode checkbox, as the speed might be too fast for server
+; TODO: Shulker box crafting mode (dropping items instead of deposit into box)
+
 ; Exposed variables ========
 
 ; Edit sequence vars
@@ -347,7 +352,8 @@ SendMouseMove(x, y) {
 }
 
 PlayBeepStartSequence(delay) {
-    val := delay * 8
+    ; TODO: Fix this race condition garbage (the beeps can take longer than timer, if timer is made shorter)
+    val := delay * 2
     Sleep % val
     SoundBeep, 444, 80
     Sleep % val
@@ -438,7 +444,7 @@ class CraftSequenceRunner {
             OutputDebug, % this.winWidth "," this.winHeight
 
             timer := this.timer
-            frequency := 30 * this.actionDelay + 1000
+            frequency := 10 * this.actionDelay + 1000
             SetTimer % timer, % frequency
         }
     }
@@ -502,14 +508,12 @@ class CraftSequenceRunner {
         SendInput, {Shift down}
         SendInput, {LButton 2}
         SendInput, {Shift up}
-        Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
         ; Open crafting table ====
         SendMouseMove(200, 0)
         SendMouseMove(200, 0)
-        Sleep % this.actionDelay
         SendInput, {RButton}
         Sleep % this.actionDelay
 
@@ -524,7 +528,6 @@ class CraftSequenceRunner {
         ; Open right shulker ====
         SendMouseMove(200, 0)
         SendMouseMove(200, 0)
-        Sleep % this.actionDelay
         SendInput, {RButton}
         Sleep % this.actionDelay
 
@@ -534,15 +537,10 @@ class CraftSequenceRunner {
         SendInput, {Shift down}
         SendInput, {LButton}
         MouseMove, 0, baseMoveToItemY * guiScale,, R
-        Sleep % this.actionDelay
-
         SendInput, {LButton}
         MouseMove, 0, baseMoveToItemY * guiScale,, R
-        Sleep % this.actionDelay
-
         SendInput, {LButton}
         SendInput, {Shift up}
-        Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
@@ -571,18 +569,15 @@ class CraftSequenceRunner {
     CraftItemStack(x, y) {
         global
         MouseMove, baseCategoryX * guiScale, baseCategoryBlocksY * guiScale,, R
-        Sleep % this.actionDelay
         SendInput, {LButton}
         MouseMove, x, y
 
         MouseMove, baseSelectCraftItemX * guiScale, baseSelectCraftItemY * guiScale,, R
-        Sleep % this.actionDelay
         SendInput, {Shift down}
         SendInput, {LButton}
         MouseMove, x, y
 
         MouseMove, baseCraftItemX * guiScale, baseSelectCraftItemY * guiScale,, R
-        Sleep % this.actionDelay
         SendInput, {LButton}
         SendInput, {Shift up}
         MouseMove, x, y
