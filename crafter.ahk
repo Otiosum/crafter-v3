@@ -53,19 +53,19 @@ Gui MainG: Add, DropDownList, x+10 r5 w70 AltSubmit gSelectCraftCategory vSelect
 ToggleCraftCategoryControl()
 
 Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
-Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
+Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScale Choose%guiScale%, 1|2||3|4|
 
 Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
 Gui MainG: Add, Button, x70 y+0 w50 h18 gDemoSequence, Test
 Gui MainG: Add, Button, x+10 w50 h18 gStartSequence vStartButton, Start
 Gui MainG: Add, Text, x5 y+10 w240 0x10 ; Horizontal Etched line
 
-Gui MainG: Add, Checkbox, x20 y+0 w150 h16 gToggleBeepOnStop vIsBeepEndEnabledVar Checked%isBeepEndEnabled%, Play BEEP when stopped
+Gui MainG: Add, Checkbox, x20 y+0 w150 h16 gToggleBeepOnStop vIsBeepEndEnabled Checked%isBeepEndEnabled%, Play BEEP when stopped
 Gui MainG: Add, Button, x+0 w40 h18 gPlayEndBeepDemo, Demo
-Gui MainG: Add, Checkbox, x20 y+2 w150 h16 gToggleBeepOnStart vIsBeepStartEnabledVar Checked%isBeepStartEnabled%, Play BEEPs when starting
+Gui MainG: Add, Checkbox, x20 y+2 w150 h16 gToggleBeepOnStart vIsBeepStartEnabled Checked%isBeepStartEnabled%, Play BEEPs when starting
 Gui MainG: Add, Button, x+0 w40 h18 gPlayStartBeepDemo, Demo
-Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
-Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleServerMode vIsServerModeEnabledVar Checked%isServerModeEnabled%, Server mode
+Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabled Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
+Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleServerMode vIsServerModeEnabled Checked%isServerModeEnabled%, Server mode
 
 Gui MainG: Add, Button, x44 y320 w80 h18 gDisplayHotkeys, Hotkeys
 Gui MainG: Add, Button, x+2 w80 h18 gDisplayHelp, Help
@@ -81,31 +81,26 @@ MainGGuiClose:
 
 ToggleBeepOnStart:
     Gui MainG:Submit, NoHide
-    isBeepStartEnabled := isBeepStartEnabledVar
     WriteToConfig()
     return
 
 ToggleBeepOnStop:
     Gui MainG:Submit, NoHide
-    isBeepEndEnabled := isBeepEndEnabledVar
     WriteToConfig()
     return
 
 ToggleStartHotkey:
     Gui MainG:Submit, NoHide
-    isStartHotkeyEnabled := isStartHotkeyEnabledVar
     WriteToConfig()
     return
 
 ToggleServerMode:
     Gui MainG:Submit, NoHide
-    isServerModeEnabled := isServerModeEnabledVar
     WriteToConfig()
     return
 
 SelectGuiScale:
     Gui MainG:Submit, NoHide
-    guiScale := guiScaleVar
     WriteToConfig()
     return
 
