@@ -31,6 +31,7 @@ selectedEditSequence := 0
 sequenceList := ""
 sequenceCount := 2
 selectedSequence := 0
+SelectedCraftCategory := 0
 
 seqCraftPosX := 0
 seqCraftPosY := 0
@@ -40,7 +41,9 @@ seqIsDropCraft := False
 isBeepStartEnabled := True
 isBeepEndEnabled := True
 isStartHotkeyEnabled := False
+isServerModeEnabled := False
 guiScale := 2
+selectedCraftCategory := 1
 
 ; Class variables ========
 tracker := new CursorTracker
@@ -58,6 +61,9 @@ Gui MainG: Tab, 1
 Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection Choose%selectedSequence%, %sequenceList%
 
+Gui MainG: Add, Text, x20 y+5 w80, Crafting category
+Gui MainG: Add, DropDownList, x+10 r5 w70 AltSubmit gSelectCraftCategory vSelectedCraftCategory Choose%selectedCraftCategory%, Tools|Blocks|Misc|Redstone
+
 Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
 Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
 
@@ -71,6 +77,7 @@ Gui MainG: Add, Button, x+0 w40 h18 gPlayEndBeepDemo, Demo
 Gui MainG: Add, Checkbox, x20 y+2 w150 h16 gToggleBeepOnStart vIsBeepStartEnabledVar Checked%isBeepStartEnabled%, Play BEEPs when starting
 Gui MainG: Add, Button, x+0 w40 h18 gPlayStartBeepDemo, Demo
 Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
+Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleServerMode vIsServerModeEnabledVar Checked%isServerModeEnabled%, Server mode
 
 ; Add elements to 2nd tab
 Gui MainG: Tab, 2
@@ -116,10 +123,20 @@ ToggleStartHotkey:
     WriteToConfig()
     return
 
+ToggleServerMode:
+    Gui MainG:Submit, NoHide
+    isServerModeEnabled := isServerModeEnabledVar
+    WriteToConfig()
+    return
+
 SelectGuiScale:
     Gui MainG:Submit, NoHide
     guiScale := guiScaleVar
     WriteToConfig()
+    return
+
+SelectCraftCategory:
+    Gui MainG:Submit, NoHide
     return
 
 UpdateSelection:
@@ -294,6 +311,7 @@ CreateConfigIfNoneExists() {
         isBeepOnStartEnabled =1
         isBeepOnEndEnabled =1
         isStartHotkeyEnabled =0
+        isServerModeEnabled =0
         guiScale =2
         LastUsedSequenceId =1
         ), % configFile, utf-16
@@ -315,6 +333,7 @@ ReadFromConfig() {
     IniRead, isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniRead, isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
     IniRead, isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
+    IniRead, isServerModeEnabled, % configFile, Settings, isServerModeEnabled
     IniRead, guiScale, % configFile, Settings, guiScale
     IniRead, selectedSequence, % configFile, Settings, LastUsedSequenceId
 
@@ -335,6 +354,7 @@ WriteToConfig() {
     IniWrite, % isBeepStartEnabled, % configFile, Settings, isBeepOnStartEnabled
     IniWrite, % isBeepEndEnabled, % configFile, Settings, isBeepOnEndEnabled
     IniWrite, % isStartHotkeyEnabled, % configFile, Settings, isStartHotkeyEnabled
+    IniWrite, % isServerModeEnabled, % configFile, Settings, isServerModeEnabled
     IniWrite, % guiScale, % configFile, Settings, guiScale
     IniWrite, % selectedSequence, % configFile, Settings, LastUsedSequenceId
 }
