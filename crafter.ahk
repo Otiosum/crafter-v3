@@ -19,19 +19,6 @@ keysText =
 
 ; Exposed variables ========
 
-seq2ItemPosX := 0
-seq2ItemPosY := 0
-seq3InventSlotPosX := 0
-seq3InventSlotPosY := 0
-seq4AssistSinglePosX := 0
-seq4AssistSinglePosY := 0
-seq5AssistMultiPosX := 0
-seq5AssistMultiPosY := 0
-seq6CreateItemPosX := 0
-seq6CreateItemPosY := 0
-seq7CraftedItemPosX := 0
-seq7CraftedItemPosY := 0
-
 ; Edit sequence vars
 selectedEditSequence := 0
 
@@ -201,7 +188,7 @@ StartSequence:
         MouseMove, seqCraftPosX, seqCraftPosY
         if (isBeepStartEnabled)
             PlayBeepStartSequence(sequenceRunner.actionDelay)
-        SendInput, {Esc}
+        Send, {Esc}
     }
     Else {
         MsgBox, % "No window found with the name: Minecraft"
@@ -434,7 +421,7 @@ class CursorTracker {
 class CraftSequenceRunner {
     __New() {
         this.isCraftSequenceRunning := False
-        this.actionDelay := 140
+        this.actionDelay := 100
         this.timer := ObjBindMethod(this, "Tick")
     }
     Start(targetButton) {
@@ -444,8 +431,14 @@ class CraftSequenceRunner {
             this.isFirstMovement := True
             GuiControl, MainG:Disable, % this.activeButton
 
+            WinGetPos,,,width, height
+            SysGet, borderSize, 32
+            this.winWidth := width - borderSize
+            this.winHeight := height - borderSize
+            OutputDebug, % this.winWidth "," this.winHeight
+
             timer := this.timer
-            frequency := 33 * this.actionDelay + 1000
+            frequency := 30 * this.actionDelay + 1000
             SetTimer % timer, % frequency
         }
     }
@@ -463,115 +456,144 @@ class CraftSequenceRunner {
     Tick() {
         global
 
-        ; Open left shulker ----
+        Switch selectedSequence {
+            case 1:
+                this.RunSingleCraftSequence()
+                return
+            case 2:
+                this.RunDoubleDropCraftSequence()
+                return
+        }
+    }
+
+    ; Single craft
+    RunSingleCraftSequence() {
+        global
+        ; multiply these by the gui scale to get needed offset
+        baseSelectFirstItemX := -70
+        baseSelectFirstItemY := -60
+        baseMoveToItemY := 20
+        baseCategoryX := -170
+        baseCategoryWeaponsY := -40
+        baseCategoryBlocksY := -20
+        baseCategoryMiscY := 10
+        baseCategoryRedstoneY := 40
+        baseSelectCraftItemX := -140
+        baseSelectCraftItemY := -40
+        baseCraftItemX := 120
+        baseSelectRightItemX := 70
+
+        ; Open left shulker ====
         ; For some stupid reason first move command never works upon start, hence the double calls elsewhere
         SendMouseMove(-200, 0)
         if (this.isFirstMovement) {
             SendMouseMove(-200, 0)
             this.isFirstMovement := False
         }
-        Sleep % this.actionDelay
         SendInput, {Rbutton}
         Sleep % this.actionDelay
 
-        ; Take out all craftables into inventory ----
-        MouseMove, seq2ItemPosX, seq2ItemPosY
+        ; Take out all items into inventory ====
+        MouseMove, baseSelectFirstItemX * guiScale, baseSelectFirstItemY * guiScale,, R
         Sleep % this.actionDelay
         SendInput, {LButton}
-        Sleep % this.actionDelay
-        MouseMove, seq2ItemPosX, seq2ItemPosY + 32
+        MouseMove, 0, baseMoveToItemY * guiScale,, R
         Sleep % this.actionDelay
         SendInput, {Shift down}
         SendInput, {LButton 2}
         SendInput, {Shift up}
         Sleep % this.actionDelay
-        MouseMove, seq3InventSlotPosX, seq3InventSlotPosY
-        Sleep % this.actionDelay
-        SendInput, {LButton}
-        Sleep 500
         SendInput, {Esc}
         Sleep % this.actionDelay
 
-        ; Open crafting table ----
+        ; Open crafting table ====
         SendMouseMove(200, 0)
         SendMouseMove(200, 0)
         Sleep % this.actionDelay
         SendInput, {RButton}
         Sleep % this.actionDelay
 
-        ; Craft all items ----
-        MouseMove, seq4AssistSinglePosX, seq4AssistSinglePosY
-        Sleep % this.actionDelay
-        SendInput, {Shift down}
-
-        SendInput, {LButton}
-        Sleep % this.actionDelay
-        MouseMove, seq6CreateItemPosX, seq6CreateItemPosY
-        Sleep % this.actionDelay
-        SendInput, {LButton}
-        Sleep % this.actionDelay
-
-        MouseMove, seq5AssistMultiPosX, seq5AssistMultiPosY
-        Sleep % this.actionDelay
-        SendInput, {LButton}
-        Sleep % this.actionDelay
-        MouseMove, seq6CreateItemPosX, seq6CreateItemPosY
-        Sleep % this.actionDelay
-        SendInput, {LButton}
-        Sleep % this.actionDelay
-
-        MouseMove, seq5AssistMultiPosX, seq5AssistMultiPosY
-        Sleep % this.actionDelay
-        SendInput, {LButton}
-        Sleep % this.actionDelay
-        MouseMove, seq6CreateItemPosX, seq6CreateItemPosY
-        Sleep % this.actionDelay
-        SendInput, {LButton}
-        Sleep % this.actionDelay
-
-        SendInput, {Shift up}
+        ; Craft all items ====
+        MouseGetPos, x, y
+        this.CraftItemStack(x, y)
+        this.CraftItemStack(x, y)
+        this.CraftItemStack(x, y)
         SendInput, {Esc}
         Sleep % this.actionDelay
 
-        ; Open right shulker ----
+        ; Open right shulker ====
         SendMouseMove(200, 0)
         SendMouseMove(200, 0)
         Sleep % this.actionDelay
         SendInput, {RButton}
         Sleep % this.actionDelay
 
-        ; Put crafted items into shulker and close ----
+        ; Deposit all items ====
+        MouseMove, baseSelectRightItemX * guiScale, 0,, R
+        Sleep % this.actionDelay
         SendInput, {Shift down}
-        MouseMove, seq7CraftedItemPosX, seq7CraftedItemPosY
-        Sleep % this.actionDelay
         SendInput, {LButton}
+        MouseMove, 0, baseMoveToItemY * guiScale,, R
         Sleep % this.actionDelay
 
-        MouseMove, seq7CraftedItemPosX + 32, seq7CraftedItemPosY
-        Sleep % this.actionDelay
         SendInput, {LButton}
+        MouseMove, 0, baseMoveToItemY * guiScale,, R
         Sleep % this.actionDelay
 
-        MouseMove, seq7CraftedItemPosX + 64, seq7CraftedItemPosY
-        Sleep % this.actionDelay
         SendInput, {LButton}
-        Sleep % this.actionDelay
-
         SendInput, {Shift up}
+        Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
-        ; Move back to centre ----
+        ; Move back to centre ====
         SendMouseMove(-200, 0)
         SendMouseMove(-200, 0)
-        Sleep 300
+        Sleep % this.actionDelay
+    }
+
+    RunDoubleDropCraftSequence() {
+        global
+        ; Open left shulker
+
+        ; Take out 18 stacks of items
+
+        ; Open right shulker
+
+        ; Take out 9 stacks of items
+
+        ; Open crafting table
+
+        ; Craft all items
+
+    }
+
+    CraftItemStack(x, y) {
+        global
+        MouseMove, baseCategoryX * guiScale, baseCategoryBlocksY * guiScale,, R
+        Sleep % this.actionDelay
+        SendInput, {LButton}
+        MouseMove, x, y
+
+        MouseMove, baseSelectCraftItemX * guiScale, baseSelectCraftItemY * guiScale,, R
+        Sleep % this.actionDelay
+        SendInput, {Shift down}
+        SendInput, {LButton}
+        MouseMove, x, y
+
+        MouseMove, baseCraftItemX * guiScale, baseSelectCraftItemY * guiScale,, R
+        Sleep % this.actionDelay
+        SendInput, {LButton}
+        SendInput, {Shift up}
+        MouseMove, x, y
+        Sleep % this.actionDelay
     }
 }
 
 ; Hotkeys ========
 ~RButton::
     if (tracker.isCursorTracking) {
-        tracker.Stop()
+        ;tracker.Stop()
     }
     return
 
