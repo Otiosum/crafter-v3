@@ -455,6 +455,7 @@ class CraftSequenceRunner {
             this.activeButton := targetButton
             this.isCraftSequenceRunning := True
             this.isFirstMovement := True
+            (isServerModeEnabled) ? this.frequencyCoef := 20 : this.frequencyCoef := 10
             GuiControl, MainG:Disable, % this.activeButton
 
             WinGetPos,,,width, height
@@ -464,7 +465,7 @@ class CraftSequenceRunner {
             OutputDebug, % this.winWidth "," this.winHeight
 
             timer := this.timer
-            frequency := 10 * this.actionDelay + 1000
+            frequency := this.frequencyCoef * this.actionDelay + 1000
             SetTimer % timer, % frequency
         }
     }
@@ -532,16 +533,27 @@ class CraftSequenceRunner {
         Sleep % this.actionDelay
 
         ; Open crafting table ====
+        if (isServerModeEnabled)
+            Sleep % this.actionDelay
         SendMouseMove(200, 0)
         SendMouseMove(200, 0)
         SendInput, {RButton}
         Sleep % this.actionDelay
+        if (isServerModeEnabled)
+            Sleep % this.actionDelay
 
         ; Craft all items ====
         MouseGetPos, x, y
+
+        MouseMove, baseCategoryX * guiScale, baseCategoryBlocksY * guiScale,, R
+        SendInput, {LButton}
+        MouseMove, x, y
+
         this.CraftItemStack(x, y)
         this.CraftItemStack(x, y)
         this.CraftItemStack(x, y)
+        if (isServerModeEnabled)
+            Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
@@ -550,6 +562,8 @@ class CraftSequenceRunner {
         SendMouseMove(200, 0)
         SendInput, {RButton}
         Sleep % this.actionDelay
+        if (isServerModeEnabled)
+            Sleep % this.actionDelay
 
         ; Deposit all items ====
         MouseMove, baseSelectRightItemX * guiScale, 0,, R
@@ -561,6 +575,8 @@ class CraftSequenceRunner {
         MouseMove, 0, baseMoveToItemY * guiScale,, R
         SendInput, {LButton}
         SendInput, {Shift up}
+        if (isServerModeEnabled)
+            Sleep % this.actionDelay
         SendInput, {Esc}
         Sleep % this.actionDelay
 
@@ -588,16 +604,14 @@ class CraftSequenceRunner {
 
     CraftItemStack(x, y) {
         global
-        MouseMove, baseCategoryX * guiScale, baseCategoryBlocksY * guiScale,, R
-        SendInput, {LButton}
-        MouseMove, x, y
-
         MouseMove, baseSelectCraftItemX * guiScale, baseSelectCraftItemY * guiScale,, R
         SendInput, {Shift down}
         SendInput, {LButton}
         MouseMove, x, y
 
         MouseMove, baseCraftItemX * guiScale, baseSelectCraftItemY * guiScale,, R
+        if (isServerModeEnabled)
+            Sleep % this.actionDelay
         SendInput, {LButton}
         SendInput, {Shift up}
         MouseMove, x, y
