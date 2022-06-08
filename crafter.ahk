@@ -17,7 +17,6 @@ keysText =
         > Start Button : Starts the crafting sequence
     )
 
-; TODO: Do not need craft pos tracker anymore, since cursor is always centre
 ; TODO: Shulker box crafting mode (dropping items instead of deposit into box)
 
 ; Exposed variables ========
@@ -30,9 +29,6 @@ sequenceList := ""
 sequenceCount := 2
 selectedSequence := 0
 SelectedCraftCategory := 0
-
-seqCraftPosX := 0
-seqCraftPosY := 0
 seqIsDropCraft := False
 
 ; Settings
@@ -52,10 +48,6 @@ CreateConfigIfNoneExists()
 ReadFromConfig()
 
 ; Create GUI elements ========
-Gui MainG: Add, Tab3, x5 y5 w240 h300, Execute||Modify|
-
-; Add elements to 1st tab
-Gui MainG: Tab, 1
 Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection Choose%selectedSequence%, %sequenceList%
 
@@ -77,22 +69,8 @@ Gui MainG: Add, Button, x+0 w40 h18 gPlayStartBeepDemo, Demo
 Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
 Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleServerMode vIsServerModeEnabledVar Checked%isServerModeEnabled%, Server mode
 
-; Add elements to 2nd tab
-Gui MainG: Tab, 2
-Gui MainG: Add, Text, x20 y+10, Select sequence
-Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedEditSequence gUpdateSelection, %sequenceList%
-
-Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
-Gui MainG: Add, Text, x20 y+0 w85 h18, Crafting table
-Gui MainG: Add, Text, x+0 w60 h18 vSeq1Var, % seqCraftPosX ", " seqCraftPosY
-Gui MainG: Add, Button, x+5 w40 h14 gSetButton, Set
-Gui MainG: Add, Text, x5 y+5 w240 0x10 ; Horizontal Etched line
-
-; Outside tab
-Gui MainG: Tab,
 Gui MainG: Add, Button, x5 w80 h18 gDisplayHotkeys, Hotkeys
 Gui MainG: Add, Button, x+2 w80 h18 gDisplayHelp, Help
-
 
 Gui MainG: +AlwaysOnTop
 Gui MainG: Show, w250 h350 x1650 y650, Crafter
@@ -163,22 +141,6 @@ DisplayHelp:
         Run %imgFile%
     Else
         MsgBox, MISSING IMAGE !@`nPlease return "crafter_img.png" to the local directory!
-    return
-
-SetButton:
-    if (WinExist("Minecraft")) {
-        MouseGetPos,,,, buttonControlClass
-        WinActivate, Minecraft
-
-        Switch buttonControlClass {
-            case "Button9":
-                GuiControlGet, output, Name, Seq1Var
-                tracker.Start(output, buttonControlClass, "seqCraftPosX", "seqCraftPosY")
-        }
-    }
-    Else {
-        MsgBox, % "No window found with the name: Minecraft"
-    }
     return
 
 StartSequence:
@@ -279,13 +241,9 @@ CreateConfigIfNoneExists() {
         ( LTrim
         [1]
         sequenceName =Single craft
-        craftingTablePosX =0
-        craftingTablePosY =0
         isDropCraft =0
         [2]
         sequenceName = Double drop craft
-        craftingTablePosX =0
-        craftingTablePosY =0
         isDropCraft =1
         [Settings]
         isBeepOnStartEnabled =1
@@ -365,65 +323,6 @@ PlayBeepStartSequence(delay) {
 }
 
 ; Classes ========
-class CursorTracker {
-    __New() {
-        this.isCursorTracking := False
-        this.timer := ObjBindMethod(this, "Tick")
-    }
-    Start(outputVar, buttonControlClass, x, y) {
-        if (this.isCursorTracking = False) {
-            this._px := x
-            this._py := y
-            this.isCursorTracking := True
-            this.outputVar := outputVar
-            this.activeSetButton := buttonControlClass
-            timer := this.timer
-
-            SetTimer % timer, 60
-            GuiControl, MainG:Disable, % this.activeSetButton
-        }
-    }
-    Stop() {
-        if (this.isCursorTracking) {
-            this.isCursorTracking := False
-            timer := this.timer
-            SetTimer % timer, Off
-            GuiControl, MainG:Enable, % this.activeSetButton
-
-            Sleep 50
-            WriteSelectedSequenceDataToConfig()
-        }
-    }
-    Tick() {
-        MouseGetPos, x, y
-        GuiControl MainG:, % this.outputVar, % x ", " y
-        this.px := x
-        this.py := y
-        Sleep 50
-    }
-
-    px {
-        get {
-            local v := this._px
-            return (%v%)
-        }
-        set {
-            local v := this._px
-            return (%v% := value)
-        }
-    }
-    py {
-        get {
-            local v := this._py
-            return (%v%)
-        }
-        set {
-            local v := this._py
-            return (%v% := value)
-        }
-    }
-}
-
 class CraftSequenceRunner {
     __New() {
         this.isCraftSequenceRunning := False
