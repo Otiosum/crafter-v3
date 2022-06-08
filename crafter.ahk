@@ -26,7 +26,7 @@ selectedSequence := 0
 SelectedCraftCategory := 0
 
 seqIsDropCraft := False
-seqIsFixedCategory := False
+seqIsCategoryEnabled := False
 
 ; Settings
 isBeepStartEnabled := True
@@ -50,6 +50,7 @@ Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelecti
 
 Gui MainG: Add, Text, x20 y+5 w80, Crafting category
 Gui MainG: Add, DropDownList, x+10 r5 w70 AltSubmit gSelectCraftCategory vSelectedCraftCategory Choose%selectedCraftCategory%, Weapons|Blocks|Misc|Redstone
+ToggleCraftCategoryControl()
 
 Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
 Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
@@ -117,8 +118,8 @@ UpdateSelection:
     WriteToConfig()
     ReadSelectedSequenceDataFromConfig()
 
-    GuiControlGet, output, Name, Seq1Var
-    GuiControl, MainG:, % output, % seqCraftPosX ", " seqCraftPosY
+    GuiControl, MainG:Choose, selectedCraftCategory, %selectedCraftCategory%
+    ToggleCraftCategoryControl()
     return
 
 PlayEndBeepDemo:
@@ -231,6 +232,16 @@ DemoSequence:
 
 ; Functions ========
 
+ToggleCraftCategoryControl() {
+    global
+    if (seqIsCategoryEnabled) {
+        GuiControl, MainG:Enable, selectedCraftCategory
+    }
+    Else {
+        GuiControl, MainG:Disable, selectedCraftCategory
+    }
+}
+
 CreateConfigIfNoneExists() {
     global configFile
     if not (FileExist(configFile)) {
@@ -280,9 +291,16 @@ ReadFromConfig() {
 ReadSelectedSequenceDataFromConfig() {
     global
 
-    IniRead, seqCraftPosX, % configFile, % selectedSequence, craftingTablePosX
-    IniRead, seqCraftPosY, % configFile, % selectedSequence, craftingTablePosY
     IniRead, seqIsDropCraft, % configFile, % selectedSequence, isDropCraft
+    IniRead, selectedCraftCategory, % configFile, % selectedSequence, fixedCategory
+
+    if (selectedCraftCategory = 0) {
+        seqIsCategoryEnabled := True
+        selectedCraftCategory := 1
+    }
+    Else {
+        seqIsCategoryEnabled := False
+    }
 }
 
 WriteToConfig() {
@@ -298,10 +316,6 @@ WriteToConfig() {
 
 WriteSelectedSequenceDataToConfig() {
     global
-
-    IniWrite, % seqCraftPosX, % configFile, % selectedSequence, craftingTablePosX
-    IniWrite, % seqCraftPosY, % configFile, % selectedSequence, craftingTablePosY
-    IniWrite, % seqIsDropCraft, % configFile, % selectedSequence, isDropCraft
 }
 
 SendMouseMove(x, y) {
