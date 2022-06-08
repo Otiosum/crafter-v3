@@ -12,7 +12,6 @@ keysText =
         > Numpad End : Stop Crafting
         > RCtrl : Start Crafting (If toggled)
         > Alt Gr : Exit program
-        > Right Click : Confirm mouse position after selecting "Set"
         > Test Button : Run a slow sequence demo without left clicks
         > Start Button : Starts the crafting sequence
     )
@@ -20,16 +19,14 @@ keysText =
 ; TODO: Shulker box crafting mode (dropping items instead of deposit into box)
 
 ; Exposed variables ========
-
-; Edit sequence vars
-selectedEditSequence := 0
-
 ; Sequence vars
 sequenceList := ""
 sequenceCount := 2
 selectedSequence := 0
 SelectedCraftCategory := 0
+
 seqIsDropCraft := False
+seqIsFixedCategory := False
 
 ; Settings
 isBeepStartEnabled := True
@@ -69,7 +66,7 @@ Gui MainG: Add, Button, x+0 w40 h18 gPlayStartBeepDemo, Demo
 Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleStartHotkey vIsStartHotkeyEnabledVar Checked%isStartHotkeyEnabled%, Allow hotkey to start sequence
 Gui MainG: Add, Checkbox, x20 y+2 h16 gToggleServerMode vIsServerModeEnabledVar Checked%isServerModeEnabled%, Server mode
 
-Gui MainG: Add, Button, x5 w80 h18 gDisplayHotkeys, Hotkeys
+Gui MainG: Add, Button, x44 y320 w80 h18 gDisplayHotkeys, Hotkeys
 Gui MainG: Add, Button, x+2 w80 h18 gDisplayHelp, Help
 
 Gui MainG: +AlwaysOnTop
@@ -240,11 +237,13 @@ CreateConfigIfNoneExists() {
         FileAppend,
         ( LTrim
         [1]
-        sequenceName =Single craft
+        sequenceName =Simple craft
         isDropCraft =0
+        fixedCategory =0
         [2]
-        sequenceName = Double drop craft
+        sequenceName = Shulker box craft
         isDropCraft =1
+        fixedCategory =3
         [Settings]
         isBeepOnStartEnabled =1
         isBeepOnEndEnabled =1
@@ -493,11 +492,6 @@ class CraftSequenceRunner {
 }
 
 ; Hotkeys ========
-~RButton::
-    if (tracker.isCursorTracking) {
-        ;tracker.Stop()
-    }
-    return
 
 ; NumpadEnd
 vk23::
