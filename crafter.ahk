@@ -18,8 +18,6 @@ keysText =
     )
 
 ; TODO: Do not need craft pos tracker anymore, since cursor is always centre
-; TODO: Add drop down for recipe category selection, and functionality during crafting
-; TODO: Potential server mode checkbox, as the speed might be too fast for server
 ; TODO: Shulker box crafting mode (dropping items instead of deposit into box)
 
 ; Exposed variables ========
@@ -62,7 +60,7 @@ Gui MainG: Add, Text, x20 y+10, Select sequence
 Gui MainG: Add, DropDownList, x+10 r5 AltSubmit vSelectedSequence gUpdateSelection Choose%selectedSequence%, %sequenceList%
 
 Gui MainG: Add, Text, x20 y+5 w80, Crafting category
-Gui MainG: Add, DropDownList, x+10 r5 w70 AltSubmit gSelectCraftCategory vSelectedCraftCategory Choose%selectedCraftCategory%, Tools|Blocks|Misc|Redstone
+Gui MainG: Add, DropDownList, x+10 r5 w70 AltSubmit gSelectCraftCategory vSelectedCraftCategory Choose%selectedCraftCategory%, Weapons|Blocks|Misc|Redstone
 
 Gui MainG: Add, Text, x20 y+5 w80, GUI scaling
 Gui MainG: Add, DropDownList, x+10 r5 w50 gSelectGuiScale vGuiScaleVar Choose%guiScale%, 1|2||3|4|
@@ -173,27 +171,9 @@ SetButton:
         WinActivate, Minecraft
 
         Switch buttonControlClass {
-            case "Button8":
+            case "Button9":
                 GuiControlGet, output, Name, Seq1Var
                 tracker.Start(output, buttonControlClass, "seqCraftPosX", "seqCraftPosY")
-            ; case "Button2":
-            ;     GuiControlGet, output, Name, Seq2Var
-            ;     tracker.Start(output, buttonControlClass, "seq2ItemPosX", "seq2ItemPosY")
-            ; case "Button3":
-            ;     GuiControlGet, output, Name, Seq3Var
-            ;     tracker.Start(output, buttonControlClass, "seq3InventSlotPosX", "seq3InventSlotPosY")
-            ; case "Button4":
-            ;     GuiControlGet, output, Name, Seq4Var
-            ;     tracker.Start(output, buttonControlClass, "seq4AssistSinglePosX", "seq4AssistSinglePosY")
-            ; case "Button5":
-            ;     GuiControlGet, output, Name, Seq5Var
-            ;     tracker.Start(output, buttonControlClass, "seq5AssistMultiPosX", "seq5AssistMultiPosY")
-            ; case "Button6":
-            ;     GuiControlGet, output, Name, Seq6Var
-            ;     tracker.Start(output, buttonControlClass, "seq6CreateItemPosX", "seq6CreateItemPosY")
-            ; case "Button7":
-            ;     GuiControlGet, output, Name, Seq7Var
-            ;     tracker.Start(output, buttonControlClass, "seq7CraftedItemPosX", "seq7CraftedItemPosY")
         }
     }
     Else {
@@ -458,11 +438,11 @@ class CraftSequenceRunner {
             (isServerModeEnabled) ? this.frequencyCoef := 20 : this.frequencyCoef := 10
             GuiControl, MainG:Disable, % this.activeButton
 
-            WinGetPos,,,width, height
-            SysGet, borderSize, 32
-            this.winWidth := width - borderSize
-            this.winHeight := height - borderSize
-            OutputDebug, % this.winWidth "," this.winHeight
+            ; WinGetPos,,,width, height
+            ; SysGet, borderSize, 32
+            ; this.winWidth := width - borderSize
+            ; this.winHeight := height - borderSize
+            ; OutputDebug, % this.winWidth "," this.winHeight
 
             timer := this.timer
             frequency := this.frequencyCoef * this.actionDelay + 1000
@@ -500,11 +480,10 @@ class CraftSequenceRunner {
         baseSelectFirstItemX := -70
         baseSelectFirstItemY := -60
         baseMoveToItemY := 20
+
         baseCategoryX := -170
-        baseCategoryWeaponsY := -40
-        baseCategoryBlocksY := -20
-        baseCategoryMiscY := 10
-        baseCategoryRedstoneY := 40
+        baseCategoryY := [-40, -20, 20, 40]
+
         baseSelectCraftItemX := -140
         baseSelectCraftItemY := -40
         baseCraftItemX := 120
@@ -543,8 +522,7 @@ class CraftSequenceRunner {
 
         ; Craft all items ====
         MouseGetPos, x, y
-
-        MouseMove, baseCategoryX * guiScale, baseCategoryBlocksY * guiScale,, R
+        MouseMove, baseCategoryX * guiScale, baseCategoryY[selectedCraftCategory] * guiScale,, R
         SendInput, {LButton}
         MouseMove, x, y
 
